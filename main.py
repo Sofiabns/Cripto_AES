@@ -81,8 +81,8 @@ def process_folder(input_dir, output_dir, password, mode):
 
 def escolher_pasta(titulo):
     root = tk.Tk()
-    root.attributes('-topmost', True)  # 🔥 garante que a janela fique em primeiro plano
-    root.withdraw()  # esconde janela principal
+    root.attributes('-topmost', True)  
+    root.withdraw()  
     pasta = filedialog.askdirectory(title=titulo, mustexist=True)
     root.destroy()
     return pasta
@@ -90,21 +90,21 @@ def escolher_pasta(titulo):
 
 def input_senha(prompt="Digite a senha: "):
     try:
-        # Se for Windows, usa msvcrt
+        
         import msvcrt
         print(prompt, end='', flush=True)
         senha = ''
         while True:
             ch = msvcrt.getch()
-            if ch in {b'\r', b'\n'}:  # Enter
+            if ch in {b'\r', b'\n'}:  
                 print()
                 break
-            elif ch == b'\x08':  # Backspace
+            elif ch == b'\x08':  
                 if len(senha) > 0:
                     senha = senha[:-1]
                     sys.stdout.write('\b \b')
                     sys.stdout.flush()
-            elif ch == b'\x03':  # Ctrl+C
+            elif ch == b'\x03':  
                 raise KeyboardInterrupt
             else:
                 try:
@@ -116,7 +116,7 @@ def input_senha(prompt="Digite a senha: "):
                 sys.stdout.flush()
         return senha
     except ImportError:
-        # fallback para sistemas que não têm msvcrt (Linux/Mac)
+        
         return getpass.getpass(prompt)
     
 def main():
@@ -149,7 +149,7 @@ def main():
     process_folder(pasta_entrada, pasta_saida, senha, modo)
     print("\n[FINALIZADO] Operação concluída!")
 
-    # 🔥 Abre o Explorer na pasta de saída
+    
     try:
         os.startfile(pasta_saida)
     except Exception as e:
