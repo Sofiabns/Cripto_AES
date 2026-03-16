@@ -1,34 +1,151 @@
-# AES File Encryption/Decryption Tool
-Este é um script Python para criptografar e descriptografar arquivos usando o algoritmo AES-GCM com derivação de chave via PBKDF2-HMAC-SHA256. Ele permite processar recursivamente todos os arquivos dentro de uma pasta, salvando os resultados em outra pasta.
+# Cripto_AES 🔐
 
-## Funcionalidades
-- Criptografia AES-GCM com chave derivada de senha via PBKDF2 (200.000 iterações).
-- Suporte a pastas inteiras, mantendo a estrutura de diretórios.
-- Interface simples via console para seleção de pastas (usando diálogo gráfico).
-- Entrada de senha oculta no terminal.
-- Arquivos criptografados recebem extensão .enc.
-- Verificação de integridade e autenticação via AES-GCM.
-- Compatível com Windows, Linux e macOS (para entrada de senha e seleção de pastas).
-## Requisitos
-- Python 3.6+
-- Biblioteca cryptography
-- Biblioteca tkinter (geralmente já incluída no Python padrão)
+> Ferramenta de linha de comando para **criptografar e descriptografar arquivos e pastas inteiras** com AES-256-GCM, derivação de chave via PBKDF2-HMAC-SHA256 e interface gráfica de seleção de pastas.
 
-Instale a biblioteca cryptography via pip, se necessário:
+---
+
+## Índice
+
+- [Sobre o projeto](#sobre-o-projeto)
+- [Segurança](#segurança)
+- [Pré-requisitos](#pré-requisitos)
+- [Instalação](#instalação)
+- [Como usar](#como-usar)
+- [Formato do arquivo criptografado](#formato-do-arquivo-criptografado)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Próximas melhorias](#próximas-melhorias)
+- [Licença](#licença)
+
+---
+
+## Sobre o projeto
+
+O **Cripto_AES** é uma ferramenta Python focada em **privacidade local**. Com ela você seleciona uma pasta de entrada, uma pasta de saída e digita uma senha — o programa cuida do restante, processando todos os arquivos recursivamente e preservando a estrutura de diretórios.
+
+Casos de uso típicos: backup criptografado em nuvem, proteção de documentos sensíveis, envio seguro de arquivos por canais não confiáveis.
+
+---
+
+## Segurança
+
+| Componente | Escolha | Por quê |
+|------------|---------|---------|
+| Cifra | AES-256-GCM | Criptografia autenticada — detecta adulteração e garante integridade |
+| KDF | PBKDF2-HMAC-SHA256 | Resistente a ataques de força bruta com 200.000 iterações |
+| Salt | 16 bytes aleatórios | Garante que a mesma senha gere chaves diferentes em cada arquivo |
+| Nonce | 12 bytes aleatórios | Garante que o mesmo conteúdo gere ciphertexts diferentes |
+| Assinatura | `ENCv1` (5 bytes) | Identifica arquivos criptografados e versão do formato |
+
+> **Atenção:** A segurança depende diretamente da força da senha escolhida. Use senhas longas e únicas.
+
+---
+
+## Pré-requisitos
+
+- Python **3.11** ou superior
+- `tkinter` (já incluso na instalação padrão do Python)
+
+---
+
+## Instalação
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/seu-usuario/Cripto_AES.git
+cd Cripto_AES
+
+# 2. (Opcional) Crie um ambiente virtual
+python -m venv .venv
+# Linux / macOS
+source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
+
+# 3. Instale a dependência
+pip install -r requirements.txt
 ```
-pip install cryptography
-```
+
+---
+
 ## Como usar
-1. Execute o script:
-```
+
+```bash
 python main.py
 ```
-2. Escolha a opção desejada no menu:
-- 1 para criptografar arquivos.
-- 2 para descriptografar arquivos.
 
-3. Selecione a pasta de entrada (onde estão os arquivos originais ou criptografados).
-4. Selecione a pasta de saída (onde os arquivos processados serão salvos).
-5. Digite a senha para derivação da chave (a senha não será exibida no terminal).
-6. Aguarde o processamento. O script exibirá o status de cada arquivo.
-7. Ao final, a pasta de saída será aberta automaticamente.
+**Passo a passo:**
+
+1. Escolha `1` para **criptografar** ou `2` para **descriptografar**
+2. Selecione a **pasta de entrada** no diálogo gráfico
+3. Selecione a **pasta de saída** (deve ser diferente da entrada)
+4. Digite a senha — os caracteres não são exibidos no terminal
+5. Na criptografia, confirme a senha para evitar erros de digitação
+6. Aguarde o processamento; ao final um resumo é exibido e a pasta de saída é aberta automaticamente
+
+**Saída no terminal:**
+
+```
+==========================================
+     CRIPTO AES — Criptografia de Arquivos
+==========================================
+  1  Criptografar arquivos
+  2  Descriptografar arquivos
+  0  Sair
+
+Escolha uma opção: 1
+
+[1/3] [OK] Criptografado: documentos/relatorio.pdf
+[2/3] [OK] Criptografado: documentos/planilha.xlsx
+[3/3] [OK] Criptografado: fotos/imagem.jpg
+
+==========================================
+  ✔  Sucesso  : 3
+==========================================
+  Operação concluída!
+```
+
+---
+
+## Formato do arquivo criptografado
+
+Cada arquivo `.enc` gerado possui a seguinte estrutura binária:
+
+```
+┌─────────────┬──────────────┬──────────────┬──────────────────────────┐
+│  MAGIC      │  salt        │  nonce       │  ciphertext + auth tag   │
+│  5 bytes    │  16 bytes    │  12 bytes    │  N + 16 bytes            │
+│  "ENCv1"    │  aleatório   │  aleatório   │  AES-256-GCM             │
+└─────────────┴──────────────┴──────────────┴──────────────────────────┘
+```
+
+- O **salt** é único por arquivo, garantindo que arquivos idênticos com a mesma senha produzam ciphertexts distintos
+- O **auth tag** de 16 bytes (embutido no ciphertext pelo AES-GCM) garante que qualquer adulteração seja detectada na descriptografia
+
+---
+
+## Estrutura do projeto
+
+```
+Cripto_AES/
+├── main.py           # Lógica de criptografia + interface console
+├── requirements.txt
+├── README.md
+└── LICENSE
+```
+
+---
+
+## Próximas melhorias
+
+- [ ] Interface gráfica completa com Tkinter (barra de progresso, log em tempo real)
+- [ ] Suporte a criptografia de arquivo único (além de pastas)
+- [ ] Opção `--in-place` para substituir os originais após criptografar
+- [ ] Exportação de relatório de processamento em `.txt`
+- [ ] Testes automatizados com `pytest`
+- [ ] Empacotamento em executável standalone com `PyInstaller`
+
+---
+
+## Licença
+
+Distribuído sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
